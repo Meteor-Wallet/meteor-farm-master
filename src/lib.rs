@@ -1,15 +1,21 @@
-use std::hash::Hash;
-
-use burrow_token_pyth_info::BurrowTokenPythInfo;
 use near_contract_standards::fungible_token::FungibleToken;
 use near_sdk::borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, json_types::U128, json_types::U64, near, AccountId};
+use near_sdk::{env, ext_contract, json_types::U128, json_types::U64, near, AccountId, Gas};
+use near_sdk::{NearToken, PanicOnDefault, Promise, PromiseResult};
+use std::hash::Hash;
 
+use burrow_contract::*;
+use burrow_token_pyth_info::*;
+use gas::*;
+
+mod burrow_contract;
 mod burrow_token_pyth_info;
+mod gas;
 mod permission;
 mod setup;
 // Define the contract structure
+#[derive(PanicOnDefault)]
 #[near(contract_state)]
 pub struct MeteorFarmMasterContract {
     /**

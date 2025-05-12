@@ -41,4 +41,74 @@ impl MeteorFarmMasterContract {
             base_token_reserve: U128(0),
         }
     }
+
+    /// Open to Public
+    pub fn update_cache(&self) -> Promise {
+        let promises = vec![
+            ext_burrowland::ext(self.burrowland_contract_id.clone())
+                .with_static_gas(FIVE_TERA_GAS)
+                .get_config(),
+            ext_burrowland::ext(self.burrowland_contract_id.clone())
+                .with_static_gas(FIVE_TERA_GAS)
+                .get_token_pyth_info(self.base_token_id.clone()),
+            ext_burrowland::ext(self.burrowland_contract_id.clone())
+                .with_static_gas(FIVE_TERA_GAS)
+                .get_token_pyth_info(self.master_farm_token_id.clone()),
+            ext_burrowland::ext(self.burrowland_contract_id.clone())
+                .with_static_gas(FIVE_TERA_GAS)
+                .get_token_pyth_info(self.slave_farm_token_id.clone()),
+            ext_burrowland::ext(self.burrowland_contract_id.clone())
+                .with_static_gas(FIVE_TERA_GAS)
+                .get_token_pyth_info(self.farm_reward_token_id.clone()),
+        ];
+
+        promises
+            .into_iter()
+            .reduce(|acc, p| acc.and(p))
+            .unwrap()
+            .then(Promise::new(env::current_account_id()).function_call(
+                "update_cache_callback".to_string(),
+                near_sdk::serde_json::to_vec(&()).unwrap(),
+                NearToken::from_yoctonear(0),
+                THIRTY_TERA_GAS,
+            ))
+    }
+
+    #[private]
+    pub fn update_cache_callback(&mut self) {
+        match env::promise_result(0) {
+            PromiseResult::Successful(result) => {
+                self.burrowland_config = near_sdk::serde_json::from_slice(&result).ok();
+            }
+            _ => env::panic_str("Failed to get burrowland config"),
+        }
+
+        match env::promise_result(1) {
+            PromiseResult::Successful(result) => {
+                self.base_token_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+            }
+            _ => env::panic_str("Failed to get base token pyth info"),
+        }
+
+        match env::promise_result(2) {
+            PromiseResult::Successful(result) => {
+                self.master_farm_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+            }
+            _ => env::panic_str("Failed to get master farm token pyth info"),
+        }
+
+        match env::promise_result(3) {
+            PromiseResult::Successful(result) => {
+                self.slave_farm_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+            }
+            _ => env::panic_str("Failed to get slave farm token pyth info"),
+        }
+
+        match env::promise_result(4) {
+            PromiseResult::Successful(result) => {
+                self.farm_reward_token_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+            }
+            _ => env::panic_str("Failed to get farm reward token pyth info"),
+        }
+    }
 }
