@@ -20,18 +20,18 @@ impl MeteorFarmMasterContract {
 
         Self {
             owner_id,
-            manager_id: None,
+            manager_id: LazyOption::new(StorageKey::ManagerId, None),
             burrowland_contract_id,
-            burrowland_config: None,
+            burrowland_config: LazyOption::new(StorageKey::BurrowlandConfig, None),
             base_token_id,
-            base_token_pyth_info: None,
-            token: None,
+            base_token_pyth_info: LazyOption::new(StorageKey::BaseTokenPythInfo, None),
+            token: LazyOption::new(StorageKey::Token, None),
             master_farm_token_id,
-            master_farm_pyth_info: None,
+            master_farm_pyth_info: LazyOption::new(StorageKey::MasterFarmPythInfo, None),
             slave_farm_token_id,
-            slave_farm_pyth_info: None,
+            slave_farm_pyth_info: LazyOption::new(StorageKey::SlaveFarmPythInfo, None),
             farm_reward_token_id,
-            farm_reward_token_pyth_info: None,
+            farm_reward_token_pyth_info: LazyOption::new(StorageKey::FarmRewardPythInfo, None),
             slave_contract_id,
             min_master_health_factor,
             min_slave_health_factor,
@@ -70,7 +70,7 @@ impl MeteorFarmMasterContract {
                 "update_cache_callback".to_string(),
                 near_sdk::serde_json::to_vec(&()).unwrap(),
                 NearToken::from_yoctonear(0),
-                THIRTY_TERA_GAS,
+                TWENTY_TERA_GAS,
             ))
     }
 
@@ -78,35 +78,40 @@ impl MeteorFarmMasterContract {
     pub fn update_cache_callback(&mut self) {
         match env::promise_result(0) {
             PromiseResult::Successful(result) => {
-                self.burrowland_config = near_sdk::serde_json::from_slice(&result).ok();
+                self.burrowland_config
+                    .set(&near_sdk::serde_json::from_slice(&result).ok().unwrap());
             }
             _ => env::panic_str("Failed to get burrowland config"),
         }
 
         match env::promise_result(1) {
             PromiseResult::Successful(result) => {
-                self.base_token_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+                self.base_token_pyth_info
+                    .set(&near_sdk::serde_json::from_slice(&result).ok().unwrap());
             }
             _ => env::panic_str("Failed to get base token pyth info"),
         }
 
         match env::promise_result(2) {
             PromiseResult::Successful(result) => {
-                self.master_farm_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+                self.master_farm_pyth_info
+                    .set(&near_sdk::serde_json::from_slice(&result).ok().unwrap());
             }
             _ => env::panic_str("Failed to get master farm token pyth info"),
         }
 
         match env::promise_result(3) {
             PromiseResult::Successful(result) => {
-                self.slave_farm_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+                self.slave_farm_pyth_info
+                    .set(&near_sdk::serde_json::from_slice(&result).ok().unwrap());
             }
             _ => env::panic_str("Failed to get slave farm token pyth info"),
         }
 
         match env::promise_result(4) {
             PromiseResult::Successful(result) => {
-                self.farm_reward_token_pyth_info = near_sdk::serde_json::from_slice(&result).ok();
+                self.farm_reward_token_pyth_info
+                    .set(&near_sdk::serde_json::from_slice(&result).ok().unwrap());
             }
             _ => env::panic_str("Failed to get farm reward token pyth info"),
         }

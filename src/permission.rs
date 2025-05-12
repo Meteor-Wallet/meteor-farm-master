@@ -6,7 +6,7 @@ impl MeteorFarmMasterContract {
     }
 
     pub fn internal_is_manager(&self, account_id: &AccountId) -> bool {
-        self.manager_id.is_some() && *self.manager_id.as_ref().unwrap() == *account_id
+        self.manager_id.is_some() && *self.manager_id.get().unwrap() == *account_id
     }
 
     pub fn internal_is_owner_or_manager(&self, account_id: &AccountId) -> bool {

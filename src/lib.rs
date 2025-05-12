@@ -1,8 +1,9 @@
 use near_contract_standards::fungible_token::FungibleToken;
 use near_sdk::borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
+use near_sdk::collections::LazyOption;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{env, ext_contract, json_types::U128, json_types::U64, near, AccountId, Gas};
-use near_sdk::{NearToken, PanicOnDefault, Promise, PromiseResult};
+use near_sdk::{BorshStorageKey, NearToken, PanicOnDefault, Promise, PromiseResult};
 use std::hash::Hash;
 
 use burrow_contract::*;
@@ -14,6 +15,17 @@ mod burrow_token_pyth_info;
 mod gas;
 mod permission;
 mod setup;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+pub enum StorageKey {
+    ManagerId,
+    BurrowlandConfig,
+    BaseTokenPythInfo,
+    Token,
+    MasterFarmPythInfo,
+    SlaveFarmPythInfo,
+    FarmRewardPythInfo,
+}
 // Define the contract structure
 #[derive(PanicOnDefault)]
 #[near(contract_state)]
@@ -27,7 +39,7 @@ pub struct MeteorFarmMasterContract {
      * arbitrage bot, this account SHALL NOT be permitted to run any transactions that cause permanent loss of funds.
      */
     owner_id: AccountId,
-    manager_id: Option<AccountId>,
+    manager_id: LazyOption<AccountId>,
     /**
      * Burrowland Contract
      *
@@ -37,7 +49,7 @@ pub struct MeteorFarmMasterContract {
      * config in the contract.
      */
     burrowland_contract_id: AccountId,
-    burrowland_config: Option<BurrowConfig>,
+    burrowland_config: LazyOption<BurrowConfig>,
     /**
      * Farm Configuration
      *
@@ -52,14 +64,14 @@ pub struct MeteorFarmMasterContract {
      * farm_reward_token_id: The account ID of the reward token contract, this is the token that we will get from the farm bonus.
      */
     base_token_id: AccountId,
-    base_token_pyth_info: Option<BurrowTokenPythInfo>,
-    token: Option<FungibleToken>,
+    base_token_pyth_info: LazyOption<BurrowTokenPythInfo>,
+    token: LazyOption<FungibleToken>,
     master_farm_token_id: AccountId,
-    master_farm_pyth_info: Option<BurrowTokenPythInfo>,
+    master_farm_pyth_info: LazyOption<BurrowTokenPythInfo>,
     slave_farm_token_id: AccountId,
-    slave_farm_pyth_info: Option<BurrowTokenPythInfo>,
+    slave_farm_pyth_info: LazyOption<BurrowTokenPythInfo>,
     farm_reward_token_id: AccountId,
-    farm_reward_token_pyth_info: Option<BurrowTokenPythInfo>,
+    farm_reward_token_pyth_info: LazyOption<BurrowTokenPythInfo>,
     /**
      * Contract Configuration
      *
